@@ -6,7 +6,8 @@ const program = new Command();
 function validateType(value) {
     const allowedTypes = ['approve', 'reject'];
     if (!allowedTypes.includes(value)) {
-        throw new Error(`The value "${value}" is invalid. Use one of: ${allowedTypes.join(', ')}`);
+        console.log(`The value "${value}" is invalid. Use one of: ${allowedTypes.join(', ')}`)
+        // throw new Error(`The value "${value}" is invalid. Use one of: ${allowedTypes.join(', ')}`);
     }
     return value;
 }
@@ -32,14 +33,16 @@ checkEnvVariables()
 program
     .version('1.0.0')
     .requiredOption('-r, --request_id <number>', 'Request id transaction')
-    .requiredOption('-t, --type <approve | reject>', 'Specify the type of action (approve or reject)', validateType);
+    .option('-t, --type <approve | reject>', 'Specify the type of action (approve or reject)', validateType);
 
 program.parse(process.argv);
 const options = program.opts();
 
 const utils = new Utils();
 utils.approveReject(options.request_id, options.type).then(r => {
-    console.log(r)
+    if(r){
+        console.log(r)
+    }
 }).catch(e => {
     console.error(e)
 })

@@ -66,13 +66,19 @@ class Utils{
 
     async approveReject(requestId, type){
         try {
-            if(!['approve', 'reject'].includes(type)){
-                throw new Error('Invalid type')
-            }
+
             const challengeData = await this.decodeRequestChallenge(requestId);
             const challengeJson = JSON.parse(Buffer.from(challengeData, 'base64').toString('utf-8'))
             const dataToSign = challengeJson.data.digests[0].digest
-            return this.askToContinue(dataToSign, requestId, type, challengeData)
+            if(!type){
+                console.log('Request details:\n', JSON.stringify(challengeJson, null, 2))
+                console.log('The hash you are going to sign is:', dataToSign)
+                return
+            }
+            if(!['approve', 'reject'].includes(type)){
+                return
+            }
+            return this.askToContinue(dataToSign, requestId, type, challengeData, challengeJson)
         } catch (e) {
             this.checkError(e)
         }
@@ -96,12 +102,13 @@ class Utils{
         }
     }
 
-    askToContinue(hash, requestId, type, challengeData) {
+    askToContinue(hash, requestId, type, challengeData, challengeJson) {
         return new Promise((resolve, reject) => {
             const rl = readline.createInterface({
                 input: process.stdin,
                 output: process.stdout
             });
+            console.log('Request details:\n', JSON.stringify(challengeJson, null, 2))
 
             rl.question(`The hash you are ${type === 'approve' ? 'approving' : 'rejecting'} is: ${hash}\nDo you want to continue? (y/n): `, (answer) => {
                 if (answer.toLowerCase() === 'y') {
